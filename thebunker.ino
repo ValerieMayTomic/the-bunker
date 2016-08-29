@@ -10,11 +10,14 @@
 // Parameter 3 = pixel type flags, add together as needed
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(24, LED, NEO_GRB + NEO_KHZ800);
 
+//paired key button init
 #define BTTN_1 2
 #define BTTN_2 3
 
 //////MORSE SETUP///////
-#define DOT 300 //length of dot in morse code
+//length of dot in morse code - use this to adjust speed!
+//All other characters/spaces based on the length of a dot
+#define DOT 300
 const char MORSE_MSG[ ] = "RECALL CODE 9286";
 const char* const MORSE_LETTERS[] = {"-----",
                                 ".----",
@@ -53,11 +56,11 @@ const char* const MORSE_LETTERS[] = {"-----",
                                 "-.-- ",
                                 "--.. "};
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(BTTN_1, INPUT);
   pinMode(BTTN_2, INPUT);
   strip.begin();
+  //start all LEDs green
   for(int i = 4; i < 24; i++){
     strip.setPixelColor(i, strip.Color(0,155,0));
   }
@@ -66,12 +69,12 @@ void setup() {
 
 void loop() {
   if(simulPress(HIGH)){
-    Serial.println("ARMED");
+    //ARMED
     strip.setPixelColor(0, strip.Color(155,0,0));
     strip.setPixelColor(2, strip.Color(155,0,0));
     strip.show();
     if(simulPress(LOW)){
-      Serial.println("LAUNCHED");
+      //LAUNCHED
       strip.setPixelColor(1, strip.Color(155,0,0));
       strip.setPixelColor(3, strip.Color(155,0,0));
       strip.show();
@@ -80,6 +83,10 @@ void loop() {
   }
 }
 
+/*
+ * A function that detects whether both buttons are pressed (LOW)
+ * or have their key turned (HIGH) at the same time
+ */
 boolean simulPress(boolean high_low){
   while(digitalRead(BTTN_1) != high_low && digitalRead(BTTN_2) != high_low);
   unsigned long init_time = millis();
@@ -91,6 +98,11 @@ boolean simulPress(boolean high_low){
   return(simulPress(high_low));
 }
 
+/*
+ * A function which continuously loops over the MORSE_MSG
+ * global constant, calling the appropriate functions
+ * to make it repeatedly blink in morse
+ */
 void morseCode(){
   while(true){
     Serial.println(MORSE_MSG);
@@ -100,6 +112,11 @@ void morseCode(){
   }
 }
 
+ /* A function which processes individual letters from the
+  *  MORSE_MSG global, determining which values in the
+  *  MORSE_LETTERS conversion table to access, and delaying
+  *  or calling the blinkMorse function as appropriate
+  */
 void makeMorse(char letter){
   if(letter == ' ')
     delay(DOT*4);
@@ -109,6 +126,12 @@ void makeMorse(char letter){
      blinkMorse(letter-55); //letter
 }
 
+/*
+ * A function which processes strings of
+ * dots and dashes from the MORSE_LETTERS
+ * conversion array, blinking and dleaying
+ * as appropriate
+ */
 void blinkMorse(int morseNum){
   Serial.println(MORSE_LETTERS[morseNum]);
   for(int i=0; i < 5; i++){
@@ -128,12 +151,14 @@ void blinkMorse(int morseNum){
   delay(DOT*3);
 }
 
+//turns all lights on red
 void lightsOn(){
   for(int i = 4; i < 24; i++)
     strip.setPixelColor(i, strip.Color(155,0,0));
   strip.show();
 }
 
+//turns all lights off
 void lightsOff(){
   for(int i = 4; i < 24; i++)
     strip.setPixelColor(i, strip.Color(0,0,0));
